@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center; /* Center-align text */
+        }
+        h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 32px;
+            font-size: 16px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Quiz Generator</h1>
+<p>Welcome to Quiz Generator</p>
+<p>You can create quizzes with customized questions and categories, take quizzes to test your knowledge,
+    and even manage questions by adding or deleting them.</p>
+
+<a th:href="@{/quizwork}">
+    <button type="submit">Click here to take a quiz</button>
+</a>
+
+<a th:href="@{/questionwork}">
+    <button type="submit">Click here to add or delete questions</button>
+</a>
+
+</body>
+</html>

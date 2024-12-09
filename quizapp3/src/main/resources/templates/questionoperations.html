@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Operations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .action-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .action-container input, .action-container textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .action-container button {
+            background-color: #008CBA;
+        }
+
+        .action-container button:hover {
+            background-color: #007B9E;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Question Operations</h2>
+
+<!-- Buttons to trigger actions -->
+<button onclick="showAction('add')">Add a Question</button>
+<button onclick="showAction('delete')">Delete All Questions</button>
+<button onclick="showAction('update')">Update a Question</button>
+<button onclick="showAction('get')">Get Question by ID</button>
+
+<!-- Action Containers -->
+<div class="action-container" id="addContainer">
+    <h3>Add a Question</h3>
+    <input type="text" id="addQuestion" placeholder="Question">
+    <input type="text" id="addDifficultyLevel" placeholder="Difficulty Level">
+    <input type="text" id="addOption1" placeholder="Option 1">
+    <input type="text" id="addOption2" placeholder="Option 2">
+    <input type="text" id="addOption3" placeholder="Option 3">
+    <input type="text" id="addOption4" placeholder="Option 4">
+    <input type="text" id="addAnswer" placeholder="Answer">
+    <input type="text" id="addCategory" placeholder="Category">
+    <button onclick="submitAction('add')">Submit</button>
+</div>
+
+<div class="action-container" id="deleteContainer">
+    <h3>Delete All Questions</h3>
+    <button onclick="submitAction('delete')">Submit</button>
+</div>
+
+<div class="action-container" id="updateContainer">
+    <h3>Update a Question</h3>
+    <input type="number" id="updateId" placeholder="Question ID">
+    <textarea id="updateQuestionText" placeholder="New Question Text"></textarea>
+    <button onclick="submitAction('update')">Submit</button>
+</div>
+
+<div class="action-container" id="getContainer">
+    <h3>Get Question by ID</h3>
+    <input type="number" id="getId" placeholder="Question ID">
+    <button onclick="submitAction('get')">Submit</button>
+</div>
+
+<!-- Response Output -->
+<div id="result" class="response hidden"></div>
+
+<script>
+    function showAction(action) {
+        // Hide all containers
+        document.getElementById("addContainer").style.display = 'none';
+        document.getElementById("deleteContainer").style.display = 'none';
+        document.getElementById("updateContainer").style.display = 'none';
+        document.getElementById("getContainer").style.display = 'none';
+
+        // Show the relevant container based on the action
+        document.getElementById(action + "Container").style.display = 'block';
+
+        // Hide the response
+        document.getElementById("result").classList.add("hidden");
+    }
+
+   async function submitAction(action) {
+    let url = "";
+    let method = "";
+    let data = null;
+
+    // Prepare data for the action
+    switch (action) {
+        case "add":
+            url = "/add";
+            method = "POST";
+            data = {
+                question: document.getElementById("addQuestion").value,
+                difficultylevel: document.getElementById("addDifficultyLevel").value,
+                option1: document.getElementById("addOption1").value,
+                option2: document.getElementById("addOption2").value,
+                option3: document.getElementById("addOption3").value,
+                option4: document.getElementById("addOption4").value,
+                answer: document.getElementById("addAnswer").value,
+                category: document.getElementById("addCategory").value
+            };
+            break;
+        case "delete":
+            url = "deleteall";
+            method = "DELETE";
+            break;
+        case "update":
+            const updateId = document.getElementById("updateId").value;
+            const newQuestionText = document.getElementById("updateQuestionText").value;
+            url = `/update/${updateId}?newQuestionText=${encodeURIComponent(newQuestionText)}`;
+            method = "PUT";
+            break;
+        case "get":
+            const getId = document.getElementById("getId").value;
+            url = `/id/${getId}`;
+            method = "GET";
+            break;
+    }
+
+    // Make the request and handle the response
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: data ? JSON.stringify(data) : null
+        });
+
+        // Check for successful response
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        // Parse the response as JSON
+        const result = await response.json();
+
+        // Show the response
+        document.getElementById("result").classList.remove("hidden");
+        document.getElementById("result").textContent = JSON.stringify(result, null, 2);
+    } catch (error) {
+        console.error("Error:", error);
+        document.getElementById("result").classList.remove("hidden");
+        document.getElementById("result").textContent = `Error: ${error.message}`;
+    }
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Take or Create a Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        input, button {
+            padding: 12px 24px;
+            font-size: 16px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+        }
+        input {
+            width: 250px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        label {
+            margin-top: 10px;
+        }
+        .quiz-questions, .create-quiz-form {
+            margin-top: 20px;
+            display: none;
+            flex-direction: column;
+        }
+        .question-container {
+            margin-bottom: 15px;
+        }
+        .response-container {
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+        }
+
+        .finals {
+              font-weight: bold;
+             font-size:24px;
+            text-align: center; /* Center the heading */
+        }
+        .create-quiz-button {
+
+            display: block;
+            margin: 20px auto; /* Center the button */
+        }
+        .bold-text {
+            font-weight: bold;
+             font-size:24px;
+             margin: 20px auto;/* Make text bold */
+        }
+    </style>
+</head>
+<body>
+
+<!-- Create a new quiz form -->
+<div class="create-quiz-form">
+    <h2 class="finals">Create a Quiz</h2>
+    <label for="quizCategory">Subject:</label>
+    <input type="text" id="quizCategory" placeholder="Enter quiz subject" required>
+
+    <label for="numQuestions">Number of Questions:</label>
+    <input type="number" id="numQuestions" placeholder="Number of questions" required>
+
+    <label for="quizTitle">Quiz Title:</label>
+    <input type="text" id="quizTitle" placeholder="Enter quiz title" required>
+
+    <button type="button" onclick="createQuiz()" class="create-quiz-button">Create Quiz</button>
+</div>
+
+<!-- Enter quiz ID to attempt -->
+<label for="quizId" class="bold-text">Enter Quiz ID to attempt:</label>
+<input type="text" id="quizId" name="quizId" placeholder="Quiz ID" required>
+
+<!-- Button to attempt quiz -->
+<button type="button" onclick="attemptQuiz()">Attempt Quiz</button>
+
+<!-- Quiz questions and options (Initially hidden) -->
+<div id="quizQuestions" class="quiz-questions">
+    <h2>Answer the following questions:</h2>
+    <div id="questionsContainer"></div>
+
+    <!-- Button to submit answers -->
+    <button type="button" onclick="submitQuiz()">Submit</button>
+</div>
+
+<script>
+    let questionsData = [];
+    let quizId = "";
+
+    // Function to create a quiz
+    function createQuiz() {
+        const category = document.getElementById('quizCategory').value;
+        const numQuestions = document.getElementById('numQuestions').value;
+        const title = document.getElementById('quizTitle').value;
+
+        // Check if all fields are filled
+        if (category && numQuestions && title) {
+            fetch('/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `category=${category}&numq=${numQuestions}&title=${title}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data); // Display response from the server (success or error)
+            })
+            .catch(error => {
+                alert("Error creating quiz: " + error);
+            });
+        } else {
+            alert("Please fill in all fields.");
+        }
+    }
+
+    // Function to attempt quiz
+    function attemptQuiz() {
+        quizId = document.getElementById('quizId').value;
+
+        if (quizId) {
+            fetch(`/quiz/${quizId}`)
+                .then(response => response.json())
+                .then(data => {
+                    questionsData = data;
+                    displayQuestions();
+                })
+                .catch(error => {
+                    alert("Error fetching quiz questions.");
+                });
+        } else {
+            alert("Please enter a valid Quiz ID.");
+        }
+    }
+
+    // Function to display questions and options
+    function displayQuestions() {
+        const quizQuestionsDiv = document.getElementById("quizQuestions");
+        const questionsContainer = document.getElementById("questionsContainer");
+        questionsContainer.innerHTML = ""; // Clear previous questions
+
+        questionsData.forEach((question, index) => {
+            const questionDiv = document.createElement("div");
+            questionDiv.classList.add("question-container");
+
+            questionDiv.innerHTML = `
+                <label>${question.question}</label>
+                <div class="response-container">
+                    <label><input type="radio" name="response${index}" value="option1">${question.option1}</label>
+                    <label><input type="radio" name="response${index}" value="option2">${question.option2}</label>
+                    <label><input type="radio" name="response${index}" value="option3">${question.option3}</label>
+                    <label><input type="radio" name="response${index}" value="option4">${question.option4}</label>
+                </div>
+            `;
+
+            questionsContainer.appendChild(questionDiv);
+        });
+
+        quizQuestionsDiv.style.display = "block";
+    }
+
+ // Function to submit quiz
+function submitQuiz() {
+    const responses = [];
+
+    // Collect all selected answers for the quiz
+    questionsData.forEach((question, index) => {
+        const selectedOption = document.querySelector(`input[name="response${index}"]:checked`);
+        if (selectedOption) {
+            const answerLabel = selectedOption.parentElement; // Get the parent <label> element
+            responses.push({
+                id: question.id,  // Make sure to send the question id
+                response: answerLabel.innerText.trim()  // Send the actual answer text as the response
+            });
+        } else {
+            alert(`Please answer all questions.`);
+            return;
+        }
+    });
+
+    // Submit the responses to the server
+    fetch(`/quiz/submit/${quizId}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(responses)
+    })
+    .then(response => response.json())
+    .then(score => {
+        alert(`Your score is: ${score}`);
+    })
+    .catch(error => {
+        alert("Error submitting quiz.");
+    });
+}
+
+
+    // Display create quiz form
+    document.querySelector('.create-quiz-form').style.display = "block";
+
+</script>
+
+</body>
+</html>
