@@ -7,4 +7,4 @@ It demonstrates concepts like CRUD operations and Many to Many mapping in the ba
 
 for hosting use commit  https://github.com/ironfist-15/quiz_generator/commit/3f6e2948a584d9f6e6c230805084f632304f4bd4.
 
-video link:-  https://drive.google.com/drive/folders/166kQibJwxhoyunWTOHqHC1Re6fP-01x5?usp=drive_link
+video link:-  https://drive.google.com/file/d/109twv6xMHJY6l2_4rWB4mH6JUFRVNrQz/view?usp=drive_link
